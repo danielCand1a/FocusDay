@@ -120,7 +120,7 @@ function BarChart({ data }: { data: { label: string; percent: number; color: str
 // ── Screen ────────────────────────────────────────────────────
 export default function StatsScreen() {
   const { tasks } = useTasks();
-  const { isCompleted } = useTracking();
+  const { isCompleted, getDayPercent } = useTracking();
 
   const [period, setPeriod] = useState<Period>('semanal');
   const [showPicker, setShowPicker] = useState(false);
@@ -129,7 +129,7 @@ export default function StatsScreen() {
   const activeTasks = tasks.filter((t) => t.status === 'active');
 
   // Anchor dates for navigation
-  const now = new Date(2026, 5, 8); // today: 2026-06-08
+  const now = new Date();
 
   const { rangeLabel, dates } = useMemo(() => {
     if (period === 'semanal') {
@@ -147,6 +147,20 @@ export default function StatsScreen() {
     const end = new Date(base.getFullYear(), 11, 31);
     return { rangeLabel: yearLabel(base), dates: dateRange(base, end) };
   }, [period, offset]);
+
+  // Promedio de porcentajes diarios del período (solo días pasados con tareas)
+  const effectivenessPercent = useMemo(() => {
+    const todayStr = toStr(new Date());
+    const pastDates = dates.filter(d => d <= todayStr);
+    const dayPercentages: number[] = [];
+    for (const d of pastDates) {
+      const tasksOnDate = tasks.filter(t => t.createdAt <= d);
+      const p = getDayPercent(d, tasksOnDate);
+      if (p !== null) dayPercentages.push(p);
+    }
+    if (dayPercentages.length === 0) return null;
+    return Math.round(dayPercentages.reduce((a, b) => a + b, 0) / dayPercentages.length);
+  }, [dates, tasks, getDayPercent]);
 
   // Calculate % per active task over the selected range
   const chartData = useMemo(() =>
@@ -229,6 +243,19 @@ export default function StatsScreen() {
             <BarChart data={chartData} />
           )}
         </View>
+
+        {/* Efectividad promedio del período */}
+        {effectivenessPercent !== null && (
+          <View style={styles.effectCard}>
+            <Text style={styles.effectLabel}>EFECTIVIDAD DEL PERÍODO</Text>
+            <Text style={[
+              styles.effectValue,
+              { color: effectivenessPercent >= 80 ? Colors.success : effectivenessPercent >= 50 ? Colors.chartBlue : Colors.error }
+            ]}>
+              {effectivenessPercent}%
+            </Text>
+          </View>
+        )}
 
         {/* Legend */}
         {activeTasks.length > 0 && (
@@ -342,6 +369,20 @@ const styles = StyleSheet.create({
   emptyMsg: {
     fontSize: FontSize.sm, color: Colors.textMuted,
     textAlign: 'center', paddingVertical: Spacing.lg,
+  },
+  effectCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg, padding: Spacing.md,
+    borderWidth: 1, borderColor: Colors.border,
+    marginBottom: Spacing.md,
+    alignItems: 'center', gap: Spacing.xs,
+  },
+  effectLabel: {
+    fontSize: FontSize.xs, fontWeight: '700',
+    color: Colors.textSecondary, letterSpacing: 1,
+  },
+  effectValue: {
+    fontSize: 48, fontWeight: '800', lineHeight: 56,
   },
   legend: { gap: Spacing.xs },
   legendTitle: {
