@@ -71,8 +71,6 @@ function UserModal({ visible, onClose }: { visible: boolean; onClose: () => void
           <Text style={[modal.rowLabel, { color: Colors.error }]}>cerrar sesión</Text>
           <Ionicons name="exit-outline" size={22} color={Colors.error} />
         </TouchableOpacity>
-
-        <Text style={modal.hint}>Desliza hacia arriba para cerrar</Text>
       </View>
     </Modal>
   );
@@ -88,9 +86,6 @@ function NotificationsModal({ visible, onClose }: { visible: boolean; onClose: (
       <View style={modal.sheet}>
         <View style={modal.handle} />
         <Text style={notif.title}>NOTIFICACIONES</Text>
-        {list.length === 0 && (
-          <Text style={notif.empty}>Sin notificaciones</Text>
-        )}
         {list.map((n) => (
           <View key={n.id} style={notif.row}>
             <Text style={notif.text} numberOfLines={3}>{n.text}</Text>
@@ -105,7 +100,6 @@ function NotificationsModal({ visible, onClose }: { visible: boolean; onClose: (
             </View>
           </View>
         ))}
-        <Text style={modal.hint}>Desliza hacia arriba para cerrar</Text>
       </View>
     </Modal>
   );

@@ -80,7 +80,7 @@ export default function CalendarScreen() {
   // Tasks scheduled for the selected date
   const selectedWeekday = getWeekdayKey(selected);
   const scheduledTasks = tasks.filter(
-    (t) => t.status === 'active' && t.days.includes(selectedWeekday)
+    (t) => t.status === 'active' && t.days.includes(selectedWeekday) && t.createdAt <= selected
   );
   const isToday = selected === todayStr;
   const isFutureDay = isFuture(selected);
@@ -131,7 +131,8 @@ export default function CalendarScreen() {
           {grid.map((day, idx) => {
             if (!day) return <View key={`empty-${idx}`} style={styles.cell} />;
             const dateStr = toDateStr(year, month, day);
-            const percent = getDayPercent(dateStr, tasks);
+            const tasksExistingOnDate = tasks.filter(t => t.createdAt <= dateStr);
+            const percent = getDayPercent(dateStr, tasksExistingOnDate);
             const isSelected = dateStr === selected;
             const isCurrentDay = dateStr === todayStr;
 
